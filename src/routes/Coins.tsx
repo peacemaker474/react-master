@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
+import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { fetchCoins } from "../api";
+import { useSetRecoilState } from "recoil";
+import { isDarkAtom } from "../atoms";
 
 const Container = styled.div`
     padding: 0 20px;
@@ -23,14 +27,14 @@ const Title = styled.h1`
 const CoinsList = styled.ul``;
 
 const Coin = styled.li`
-    background-color: white;
-    color: ${props => props.theme.bgColor};
     margin-bottom: 10px;
     border-radius: 15px;
+    border: 1px solid ${props => props.theme.accentColor};
     a {
         display: flex;
         align-items: center;
         padding: 20px;
+        color: ${props => props.theme.textColor};
         transition: color .2s ease-in;
     }
     &:hover {
@@ -51,7 +55,7 @@ const Img = styled.img`
     margin-right: 10px;
 `;
 
-interface CoinInterface {
+interface ICoin {
     id: string;
     name: string;
     symbol: string;
@@ -62,28 +66,24 @@ interface CoinInterface {
 }
 
 function Coins () {
-    const [coins, setCoins] = useState<CoinInterface[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { isLoading, data } = useQuery<ICoin[]>("allCoins", fetchCoins);
+    const setIsDark = useSetRecoilState(isDarkAtom);
+    const toggleDarkMode = () => setIsDark(prev => !prev);
 
-    useEffect(() => {
-        (async () => {
-            const response = await (
-                await fetch("https://api.coinpaprika.com/v1/coins")
-            ).json();
-            setCoins(response.slice(0, 100));
-            setLoading(false);
-        })();
-    }, []);
     return (
         <Container>
+            <Helmet>
+                <title> 코인 </title>
+            </Helmet>
             <Header>
                 <Title> 코인 </Title>
+                <button onClick={toggleDarkMode}> Toggle Mode </button>
             </Header>
-            {loading ? (
+            {isLoading ? (
                 <Loader> Loading... </Loader>
             ) : (
                 <CoinsList>
-                    {coins.map(coin => (
+                    {data?.slice(0, 100).map(coin => (
                         <Coin key={coin.id}>
                             <Link to={`/${coin.id}`} state={{name: coin.name}}>
                                 <Img src={`https://cryptoicon-api.vercel.app/api/icon/${coin.symbol.toLocaleLowerCase()}`} />
