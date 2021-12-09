@@ -12,7 +12,7 @@ const Box = styled(motion.div)`
 function Scroll () {
     const x = useMotionValue(0);
     const {scrollYProgress} = useViewportScroll();
-    const scale = useTransform(scrollYProgress, [0, 1], [1, 2]);
+    const scale = useTransform(scrollYProgress, [0, 1], [1, 0.2]);
     return (
         <Box drag="x" dragSnapToOrigin style={{x, scale}}/>
     )
